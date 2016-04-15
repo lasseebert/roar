@@ -229,8 +229,9 @@ module Roar
 
         def render_relationships(res)
           (res["relationships"] || []).each do |name, hash|
+            res["relationships"][name] = hash = { data: nil } if hash.nil?
             if hash.is_a?(::Hash)
-              hash[:links] = hash[:data].delete(:links) if hash[:data].has_key? :links
+              hash[:links] = hash[:data].delete(:links) if hash[:data] && hash[:data].has_key?(:links)
             else # hash => [{data: {}}, ..]
               res["relationships"][name] = collection = {data: []}
               hash.each do |hsh|
