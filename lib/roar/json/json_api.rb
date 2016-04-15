@@ -56,11 +56,12 @@ module Roar
 
       # New API for JSON-API representers.
       module Declarative
-        def type(name=nil)
-          return @type unless name # original name.
+        def type(name=nil, &block)
+          return @type unless name || block_given? # original name.
 
-          heritage.record(:type, name)
-          @type = name.to_s
+          @type = block_given? ? block : name.is_a?(Proc) ? name : proc { name.to_s }
+          heritage.record(:type, @type)
+          @type
         end
 
         def link(name, options={}, &block)
@@ -167,10 +168,11 @@ module Roar
 
           relationships = render_relationships(res)
           included      = render_included(res)
+          type = self.class.type.call(self.represented)
 
           document = {
             data: data = {
-              type: self.class.type,
+              type: type,
               id: res.delete("id").to_s
             }
           }
